@@ -1,0 +1,16 @@
+#!/bin/zsh
+
+# Path to your Rust project
+PROJECT_PATH=~/Documents/rust_shell/Cargo.toml
+
+# Check the first argument
+if [[ "$1" == "-dev" ]]; then
+  echo "Running in DEBUG mode..."
+  cargo run --manifest-path $PROJECT_PATH -- --debug
+elif [[ "$1" == "release" ]]; then
+  echo "Running in RELEASE mode..."
+  cargo run --release --manifest-path $PROJECT_PATH -- --release
+else
+  echo "Running in NORMAL mode..."
+  cargo run --manifest-path $PROJECT_PATH
+fi
