@@ -5,6 +5,7 @@
 PROJECT_PATH=$(pwd)/Cargo.toml
 
 # Check the first argument
+# shellcheck disable=SC1046
 if [[ "$1" == "-dev" ]]; then
   echo "Running in DEBUG mode..."
   cargo run --manifest-path $PROJECT_PATH -- --debug
@@ -17,4 +18,4 @@ elif [[ "$1" == "-test" ]]; then
 else
   echo "Running in NORMAL mode..."
   cargo run --manifest-path $PROJECT_PATH
-fic
+fi
