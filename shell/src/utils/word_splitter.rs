@@ -90,52 +90,53 @@ impl WordSplitter for String{
         let mut escaped = false;
 
         for ch in temp.chars() {
-            match ch {
-                '\\' if !escaped => {
-                    escaped = true;
-                    word.push(ch);
-                }
-                ' ' if !in_quote && !escaped => {
-                    if !word.is_empty() {
-                        words.push(word.trim().to_string());
-                        word = String::new();
-                    }
-                }
-                '\'' | '"' if !escaped => {
-                    if !in_quote {
-                        // Starting a quote
-                        in_quote = true;
-                        quote_char = ch;
-                        word.push(ch);
-                    } else if ch == quote_char {
-                        // Ending the same type of quote
-                        in_quote = false;
-                        word.push(ch);
-                        words.push(word.trim().to_string());
-                        word = String::new();
-                        quote_char = '\0';
-                    } else {
-                        // Different quote type inside quotes
-                        word.push(ch);
-                    }
-                }
-                _ => {
-                    escaped = false;
-                    word.push(ch);
-                }
-            }
-        
-            // Reset escaped flag after processing any character except backslash
-            if ch != '\\' || escaped {
+            if escaped {
+                // Previous character was a backslash, so this character is escaped
+                word.push(ch);
                 escaped = false;
+            } else {
+                match ch {
+                    '\\' => {
+                        // This is an escape character
+                        escaped = true;
+                        word.push(ch);
+                    }
+                    ' ' if !in_quote => {
+                        if !word.is_empty() {
+                            words.push(word.trim().to_string());
+                            word = String::new();
+                        }
+                    }
+                    '\'' | '"' => {
+                        if !in_quote {
+                            // Starting a quote
+                            in_quote = true;
+                            quote_char = ch;
+                            word.push(ch);
+                        } else if ch == quote_char {
+                            // Ending the same type of quote
+                            in_quote = false;
+                            word.push(ch);
+                            words.push(word.trim().to_string());
+                            word = String::new();
+                            quote_char = '\0';
+                        } else {
+                            // Different quote type inside quotes
+                            word.push(ch);
+                        }
+                    }
+                    _ => {
+                        word.push(ch);
+                    }
+                }
             }
         }
-    
+
         // Push any remaining word
         if !word.is_empty() {
             words.push(word.trim().to_string());
         }
-    
+
         words
     }
 }
