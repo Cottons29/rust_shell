@@ -4,8 +4,9 @@ use crate::commands::build_in::Commands;
 use crate::commands::cd::{ CdCommand};
 use crate::commands::echo::EchoCommand;
 use crate::commands::ls::LsCommand;
+use crate::commands::mkdir::MkdirCmd;
 use crate::commands::simple::ClearCommand;
-use crate::utils::{ResultPrinter, WordSplitter};
+use crate::utils::{DebugTool, ResultPrinter, WordSplitter};
 
 pub struct CmdParser {
     cmd : Commands,
@@ -36,8 +37,8 @@ impl CmdParser {
                 current_dir
             });
         }
-        let parts = text_line.split_words_by_space()?;
-
+        let parts = text_line.advance_split();
+        DebugTool::print(format!("parts: {:?}", parts));
         let cmd = parts[0].to_string();
         let args = parts[1..].to_vec();
 
@@ -76,10 +77,10 @@ impl CmdParser {
             },
 
             Echo(_) => {
-                match EchoCommand::new(self.args.clone()).run(){
+                match EchoCommand::new(self.args.clone(), &self.current_dir).run(){
                     Ok(_) => {},
                     Err(err) => {
-                        ResultPrinter::error(format!("{}", err.to_string()));
+                        ResultPrinter::error(format!("echo: {}", err.to_string()));
                     }
                 }
             }
@@ -122,6 +123,20 @@ impl CmdParser {
                 }
             },
             Pwd(_) => println!("{}", self.current_dir.display()),
+            Mkdir(_) => {
+                match MkdirCmd::new(&self.args, &self.current_dir){
+                    Ok(res) => {
+                        match res.run() {
+                            Ok(_) => {},
+                            Err(err) => {
+                                ResultPrinter::error(format!("{}", err.to_string()));
+                            }
+                        }
+                    },
+                    Err(err) => {}
+                }
+            },
+
 
             _ => ResultPrinter::error(format!("cotsh: command not found: {}", self.cmd.get_cmd()))
         }

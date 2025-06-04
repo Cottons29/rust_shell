@@ -10,6 +10,9 @@ if [[ "$1" == "-dev" ]]; then
 elif [[ "$1" == "release" ]]; then
   echo "Running in RELEASE mode..."
   cargo run --release --manifest-path $PROJECT_PATH -- --release
+elif [[ "$1" == "-test" ]]; then
+  echo "Running in test mode..."
+  cargo test --manifest-path $PROJECT_PATH
 else
   echo "Running in NORMAL mode..."
   cargo run --manifest-path $PROJECT_PATH

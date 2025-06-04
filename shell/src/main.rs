@@ -5,6 +5,7 @@ use crate::utils::{DebugTool, Input, WordSplitter};
 
 mod utils;
 mod commands;
+mod test;
 
 pub const DEBUG_MODE: Lazy<bool> = Lazy::new(|| args().any(|arg| arg == "--debug"));
 

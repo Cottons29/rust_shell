@@ -1,7 +1,5 @@
 
 
-type MultiArgs = Vec<String>;
-type SingleArg = String;
 type CmdName = String;
 
 pub enum Commands {
@@ -15,6 +13,7 @@ pub enum Commands {
     Ls(CmdName),
     NotBuildIn(CmdName),
     EmptyCommand,
+    Mkdir(CmdName)
 }
 
 impl Commands {
@@ -28,7 +27,8 @@ impl Commands {
             "clear" => Clear("clear".to_string()),
             "pwd" => Pwd("pwd".to_string()),
             "cd" => Cd("cd".to_string()),
-            "ls" => Ls("ls".to_string()),       
+            "ls" => Ls("ls".to_string()), 
+            "mkdir" => Mkdir("mkdir".to_string()),
             "" => EmptyCommand,
             _ => NotBuildIn(cmd.to_string())
         };
@@ -47,6 +47,7 @@ impl Commands {
             Cd(cmd) => cmd.clone(), 
             Ls(cmd) => cmd.clone(),
             NotBuildIn(cmd) => cmd.clone(),
+            Mkdir(cmd) => cmd.clone(),
             EmptyCommand => "".to_string(),
             _ => {"".to_string()}
         }

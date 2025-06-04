@@ -130,7 +130,7 @@ impl LsCommand {
 
     fn row_item_builder(&self, dir_r_file: &str, column_len: u16, is_last: bool) -> String {
         if is_last {
-            DebugTool::print(format!("last_item = {}", dir_r_file));
+            // DebugTool::print(format!("last_item = {}", dir_r_file));
             return dir_r_file.into();
         }
         let mut dir_r_file = dir_r_file.to_string();
@@ -153,18 +153,18 @@ impl LsCommand {
             Err(e) => return Err("Error reading directory".into()),
         };
         let mut longest_dir_name = 0;
-        let mut longest_file = String::new();
+        // let mut longest_file = String::new();
         for dir_result in entry {
             if let Ok(dir_entry) = dir_result {
                 let file_name = dir_entry.file_name().to_string_lossy().to_string();
                 let name_len = file_name.len();
                 if name_len > longest_dir_name {
                     longest_dir_name = name_len;
-                    longest_file = file_name;
+                    // longest_file = file_name;
                 }
             }
         }
-        DebugTool::print(format!("longest_file = {} : {longest_dir_name}", longest_file));
+        // DebugTool::print(format!("longest_file = {} : {longest_dir_name}", longest_file));
         Ok(longest_dir_name as u16)
     }
 

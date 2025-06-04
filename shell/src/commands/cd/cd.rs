@@ -11,10 +11,14 @@ pub struct CdCommand{
 
 impl CdCommand{
     pub fn new(current_dir: &PathBuf, arg: &Vec<String>) -> Result<Self, (Box<dyn std::error::Error>, PathBuf)>{
-        if arg.len() != 1{
+        if arg.len() > 1{
             return Err(("cd: too many arguments".into(), current_dir.into()));
         }
-        let arg: String = arg.first().unwrap().into();
+        let arg: String = if arg.len() != 0{
+            arg.first().unwrap().into()
+        }else{
+            String::from("")      
+        };
         let split_path: Vec<String> = match arg.split_path() {
             Ok(split_path) => split_path,
             Err(_) => return Err(("cd: invalid path".into(), current_dir.into())),
@@ -32,7 +36,8 @@ impl CdCommand{
     }
 
     pub fn run(mut self) -> Result<PathBuf, Box<dyn std::error::Error>>{
-        DebugTool::print(format!("cd: split_path = {}", self.split_path.len()));
+        DebugTool::print(format!("cd: split_path_len = {}", self.split_path.len()));
+        DebugTool::print(format!("cd: arg = {:?}", self.arg));
         if self.split_path.len() == 0 {
             return Ok(self.current_dir)
         };
@@ -42,9 +47,13 @@ impl CdCommand{
             None => return Ok(self.current_dir),
         };
         if first_path.is_empty(){
+            if self.arg == String::from(""){
+                DebugTool::print("cd: arg is empty");
+                self.current_dir = self.go_upper_dir();
+            }
             return Ok(self.current_dir)       
         }
-        DebugTool::print(format!("cd: {}", first_path).as_str());
+        DebugTool::print(format!("cd: first_path : {}", first_path).as_str());
         self.current_dir = match first_path.as_str(){
             "~" => PathBuf::from("/"),
             ".." => self.go_upper_dir(),
