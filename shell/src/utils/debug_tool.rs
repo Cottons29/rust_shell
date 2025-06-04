@@ -1,5 +1,5 @@
 use colored::Colorize;
-use crossterm::style::Stylize;
+
 use crate::DEBUG_MODE;
 
 pub struct DebugTool;

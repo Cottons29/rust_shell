@@ -1,8 +1,8 @@
-use crate::utils::DebugTool;
+
 
 type Output = Result<Vec<String>, Box<dyn std::error::Error>>;
-
-pub(crate) trait WordSplitter{
+#[allow(unused)]
+pub trait WordSplitter{
     fn split_words_by_space(&self) -> Output;
     fn split_quote(&self) -> Vec<String>;
     fn split_double_quote(&self) -> Vec<String>;

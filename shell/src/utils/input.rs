@@ -6,7 +6,7 @@ use crossterm::{
     style::Print,
 };
 
-pub(crate) trait Input {
+pub trait Input {
     fn read_line(msg: &str) -> String;
 }
 

@@ -1,5 +1,3 @@
-
-
 type CmdName = String;
 
 pub enum Commands {
@@ -13,7 +11,7 @@ pub enum Commands {
     Ls(CmdName),
     NotBuildIn(CmdName),
     EmptyCommand,
-    Mkdir(CmdName)
+    Mkdir(CmdName),
 }
 
 impl Commands {
@@ -27,10 +25,10 @@ impl Commands {
             "clear" => Clear("clear".to_string()),
             "pwd" => Pwd("pwd".to_string()),
             "cd" => Cd("cd".to_string()),
-            "ls" => Ls("ls".to_string()), 
+            "ls" => Ls("ls".to_string()),
             "mkdir" => Mkdir("mkdir".to_string()),
             "" => EmptyCommand,
-            _ => NotBuildIn(cmd.to_string())
+            _ => NotBuildIn(cmd.to_string()),
         };
         Ok(res)
     }
@@ -44,22 +42,20 @@ impl Commands {
             Clear(cmd) => cmd.clone(),
             Cat(cmd) => cmd.clone(),
             Pwd(cmd) => cmd.clone(),
-            Cd(cmd) => cmd.clone(), 
+            Cd(cmd) => cmd.clone(),
             Ls(cmd) => cmd.clone(),
             NotBuildIn(cmd) => cmd.clone(),
             Mkdir(cmd) => cmd.clone(),
             EmptyCommand => "".to_string(),
-            _ => {"".to_string()}
         }
     }
 
-    pub fn type_cmd(&self, arg : &str) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn type_cmd(&self, arg: &str) -> Result<String, Box<dyn std::error::Error>> {
         let type_cmd = Self::new(arg)?;
         match type_cmd {
             Commands::EmptyCommand => Ok(String::from("empty command")),
             Commands::NotBuildIn(cmd) => Ok(format!("{} is not a shell builtin", cmd)),
-            _ => Ok(format!("{} is a shell builtin", type_cmd.get_cmd()))
+            _ => Ok(format!("{} is a shell builtin", type_cmd.get_cmd())),
         }
-
     }
 }

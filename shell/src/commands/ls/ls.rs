@@ -1,14 +1,12 @@
-use std::env::Args;
-use std::fs::{ReadDir};
-use std::path::PathBuf;
-use crate::DEBUG_MODE;
 use crate::utils::DebugTool;
+use std::fs::ReadDir;
+use std::path::PathBuf;
 
 pub struct LsCommand {
     format: Vec<LsFormat>,
     dirs: Vec<String>,
     current_dir: PathBuf,
-    raw_args : Vec<String>,
+    raw_args: Vec<String>,
 }
 
 enum LsFormat {
@@ -17,7 +15,7 @@ enum LsFormat {
     CSVFormat,
     Default,
     OneLine,
-    InnerRecursive
+    InnerRecursive,
 }
 
 impl LsFormat {
@@ -32,7 +30,7 @@ impl LsFormat {
         }
     }
 }
-
+#[allow(dead_code)]
 impl LsCommand {
     pub fn new(dir: &PathBuf, args: &Vec<String>) -> Result<Self, Box<dyn std::error::Error>> {
         DebugTool::print(format!("dir = {:?}, args = {:?}", dir, args));
@@ -42,10 +40,11 @@ impl LsCommand {
             format: Vec::new(),
             current_dir: dir.clone(),
             raw_args: args,
-        }.parse_args()?;
+        }
+        .parse_args()?;
         Ok(temp)
     }
-
+    #[allow(dead_code)]
     pub fn get_dirs(&self) -> &Vec<String> {
         &self.dirs
     }
@@ -60,17 +59,16 @@ impl LsCommand {
     }
 
     fn parse_args(mut self) -> Result<Self, Box<dyn std::error::Error>> {
-        for raw_arg in &self.raw_args{
+        for raw_arg in &self.raw_args {
             if raw_arg.starts_with('-') {
                 let arg = raw_arg.chars().skip(1).collect::<String>();
                 self.format.push(LsFormat::new(arg));
-            }else{
+            } else {
                 self.dirs.push(raw_arg.to_string());
             }
         }
         Ok(self)
     }
-
 
     pub fn is_valid_path(&self, target_file: &str) -> Result<bool, Box<dyn std::error::Error>> {
         let entry = match std::fs::read_dir(&self.current_dir) {
@@ -91,10 +89,10 @@ impl LsCommand {
     fn formatted_display(
         &self,
         entry: ReadDir,
-        column_count: Option<u32>,
+        _column_count: Option<u32>,
         target_dir: Option<&PathBuf>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let (row_len, column_len) = crossterm::terminal::size().unwrap();
+        let (row_len, _column_len) = crossterm::terminal::size().unwrap();
         // println!("row = {} | column = {}", row_len, column_len);
         let longest_dir_name = self.find_longest_item_name(target_dir)? + 7;
         // println!("longest_dir_name = {}", longest_dir_name);
@@ -102,21 +100,21 @@ impl LsCommand {
         // println!("max_column = {}", max_column);
         let mut counter = 0;
         let mut line = String::new();
-        if column_count.is_some() {
-            let max_column = 1;
-        }
         if target_dir.is_some() {
             println!("{}:", target_dir.unwrap().to_string_lossy());
         }
         for dir in entry {
-
             let dir = dir?.file_name().to_string_lossy().to_string();
             if dir.starts_with('.') {
                 continue;
             }
-            line.push_str(&self.row_item_builder(&dir, longest_dir_name, counter == max_column - 1));
+            line.push_str(&self.row_item_builder(
+                &dir,
+                longest_dir_name,
+                counter == max_column - 1,
+            ));
             counter += 1;
-            if counter == max_column  {
+            if counter == max_column {
                 println!("{}", line);
                 line.clear();
                 counter = 0;
@@ -142,15 +140,18 @@ impl LsCommand {
         dir_r_file
     }
 
-    fn find_longest_item_name(&self, target_dir: Option<&PathBuf>) -> Result<u16, Box<dyn std::error::Error>> {
+    fn find_longest_item_name(
+        &self,
+        target_dir: Option<&PathBuf>,
+    ) -> Result<u16, Box<dyn std::error::Error>> {
         let dir_path = if target_dir.is_some() {
             &self.current_dir.join(target_dir.unwrap())
-        }else {
+        } else {
             &self.current_dir
         };
         let entry = match std::fs::read_dir(&dir_path) {
             Ok(dirs) => dirs,
-            Err(e) => return Err("Error reading directory".into()),
+            Err(_e) => return Err("Error reading directory".into()),
         };
         let mut longest_dir_name = 0;
         // let mut longest_file = String::new();
