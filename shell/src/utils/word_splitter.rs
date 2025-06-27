@@ -1,4 +1,4 @@
-
+use regex::Regex;
 
 type Output = Result<Vec<String>, Box<dyn std::error::Error>>;
 #[allow(unused)]
@@ -73,7 +73,8 @@ impl WordSplitter for String{
     }
 
     fn split_double_quote(&self) -> Vec<String> {
-        todo!()
+        let regex = Regex::new(r#""(.*?)"#).unwrap();
+        Vec::new()
     }
 
     fn split_path(&self) -> Output {

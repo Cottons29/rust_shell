@@ -45,15 +45,20 @@ impl EchoCommand {
         }
     }
 
+    fn combine_text(&self) -> String {
+        let mut temp_vec: Vec<String> = Vec::new();
+        let temp = self
+            .args
+            .iter()
+            .map(|arg| match arg { EchoArg::Flag(_) => None, _ => Some(arg.value())})
+            .collect::<Vec<Option<String>>>();
+
+        let temp = temp.iter().filter(|arg| arg.is_some()).map(|arg| arg.clone().unwrap()).collect::<Vec<String>>();
+        temp.join(" ")
+    }
+
     fn init_work(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let pre_process = format!(
-            "{}",
-            self.args
-                .iter()
-                .map(|arg| arg.value())
-                .collect::<Vec<String>>()
-                .join(" ")
-        );
+        let pre_process = format!("{}",self.combine_text());
         self.raw_text = Some(pre_process);
         if self.is_contain_redirection() {
             self.is_redirect = true;
@@ -107,6 +112,7 @@ impl EchoCommand {
             };
             match temp {
                 EchoArg::Flag(_) => {
+                    DebugTool::print(format!("index : {index} , value : {temp}"));
                     self.args.remove(index);
                 }
                 _ => {}
@@ -134,7 +140,9 @@ impl EchoCommand {
                             break;
                         }
                         None => {
-                            return Err("No output file specified after redirection operator".into());
+                            return Err(
+                                "No output file specified after redirection operator".into()
+                            );
                         }
                     }
                 }
@@ -275,7 +283,6 @@ impl EchoCommand {
             return Ok(());
         }
 
-        // DebugTool::print(format!("{}", self.find_output_dir().unwrap_or("Nothing".to_string())));
         if self.option.is_some() {
             let temp = self.option.as_ref().unwrap().value();
             self.parse_flags(&temp)?;
