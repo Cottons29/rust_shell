@@ -1,13 +1,12 @@
 use crossterm::cursor::MoveTo;
-use std::path::PathBuf;
 
 pub struct ClearCommand;
 
 impl ClearCommand {
     pub fn run() -> Result<(), Box<dyn std::error::Error>> {
-        use crossterm::{terminal, execute};
-        use std::io::{stdout, Write};
-        
+        use crossterm::{execute, terminal};
+        use std::io::stdout;
+
         // Clear the screen using crossterm
         execute!(
             stdout(),
@@ -18,11 +17,3 @@ impl ClearCommand {
     }
 }
 
-
-pub struct PwdCommand;
-
-impl PwdCommand {
-    pub fn run(current_path: PathBuf) {
-        println!("{}", current_path.display());
-    }
-}

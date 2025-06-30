@@ -2,7 +2,7 @@
 
 # Path to your Rust project
 
-PROJECT_PATH=$(pwd)/Cargo.toml
+PROJECT_PATH=~/Documents/rust_shell/Cargo.toml
 
 # Check the first argument
 # shellcheck disable=SC1046

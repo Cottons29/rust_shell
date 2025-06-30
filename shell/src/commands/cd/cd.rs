@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 use crate::commands::ls::LsCommand;
-use crate::utils::DebugTool;
 use crate::utils::WordSplitter;
 
 pub struct CdCommand{
@@ -36,24 +35,19 @@ impl CdCommand{
     }
 
     pub fn run(mut self) -> Result<PathBuf, Box<dyn std::error::Error>>{
-        DebugTool::print(format!("cd: split_path_len = {}", self.split_path.len()));
-        DebugTool::print(format!("cd: arg = {:?}", self.arg));
         if self.split_path.len() == 0 {
             return Ok(self.current_dir)
         };
-        DebugTool::print(format!("cd: {}", self.current_dir.display()).as_str());
         let first_path = match self.split_path.first(){
             Some(first_path) => first_path,
             None => return Ok(self.current_dir),
         };
         if first_path.is_empty(){
             if self.arg == String::from(""){
-                DebugTool::print("cd: arg is empty");
                 self.current_dir = self.go_upper_dir();
             }
             return Ok(self.current_dir)       
         }
-        DebugTool::print(format!("cd: first_path : {}", first_path).as_str());
         self.current_dir = match first_path.as_str(){
             "~" => PathBuf::from("/"),
             ".." => self.go_upper_dir(),
@@ -69,8 +63,6 @@ impl CdCommand{
             },
         };
         self.split_path.remove(0);
-
-        DebugTool::print(&format!("cd: {}", self.current_dir.display()));
         self.run()
     }
 
@@ -84,7 +76,6 @@ impl CdCommand{
 
 
     fn is_valid_dir(&self, arg: &String) -> Result<bool, Box<dyn std::error::Error>>{
-        DebugTool::print(format!("cd: arg = {}, current_dir = {}", arg, self.current_dir.display()).as_str());
         LsCommand::new(&self.current_dir, &vec![])?.is_valid_path(arg)
     }
 }

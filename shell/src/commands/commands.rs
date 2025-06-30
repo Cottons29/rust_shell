@@ -1,4 +1,4 @@
-
+use crate::commands::executable_cmds::ExecutableCmds;
 
 type CmdName = String;
 
@@ -11,14 +11,15 @@ pub enum Commands {
     Pwd(CmdName),
     Cd(CmdName),
     Ls(CmdName),
-    NotBuildIn(CmdName),
+    NotBuildIn(ExecutableCmds),
     EmptyCommand,
-    Mkdir(CmdName)
+    Mkdir(CmdName),
+    InvalidCmd(CmdName),
 }
 
 impl Commands {
     pub fn new(cmd: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        use crate::commands::build_in::Commands::*;
+        use crate::commands::commands::Commands::*;
         let res = match cmd {
             "type" => Type("type".into()),
             "echo" => Echo("echo".into()),
@@ -27,16 +28,21 @@ impl Commands {
             "clear" => Clear("clear".to_string()),
             "pwd" => Pwd("pwd".to_string()),
             "cd" => Cd("cd".to_string()),
-            "ls" => Ls("ls".to_string()), 
+            "ls" => Ls("ls".to_string()),
             "mkdir" => Mkdir("mkdir".to_string()),
             "" => EmptyCommand,
-            _ => NotBuildIn(cmd.to_string())
+            _ => {
+                match ExecutableCmds::new(cmd){
+                    Ok(res) => NotBuildIn(res),
+                    Err(_) => InvalidCmd(cmd.into())
+                }
+            },
         };
         Ok(res)
     }
 
     pub fn get_cmd(&self) -> String {
-        use crate::commands::build_in::Commands::*;
+        use crate::commands::commands::Commands::*;
         match self {
             Type(cmd) => cmd.clone(),
             Echo(cmd) => cmd.clone(),
@@ -44,22 +50,22 @@ impl Commands {
             Clear(cmd) => cmd.clone(),
             Cat(cmd) => cmd.clone(),
             Pwd(cmd) => cmd.clone(),
-            Cd(cmd) => cmd.clone(), 
+            Cd(cmd) => cmd.clone(),
             Ls(cmd) => cmd.clone(),
-            NotBuildIn(cmd) => cmd.clone(),
+            NotBuildIn(cmd) => cmd.executable().into(),
             Mkdir(cmd) => cmd.clone(),
             EmptyCommand => "".to_string(),
-            _ => {"".to_string()}
+            InvalidCmd(cmd) => cmd.clone(),
         }
     }
 
-    pub fn type_cmd(&self, arg : &str) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn type_cmd(&self, arg: &str) -> Result<String, Box<dyn std::error::Error>> {
         let type_cmd = Self::new(arg)?;
         match type_cmd {
             Commands::EmptyCommand => Ok(String::from("empty command")),
-            Commands::NotBuildIn(cmd) => Ok(format!("{} is not a shell builtin", cmd)),
-            _ => Ok(format!("{} is a shell builtin", type_cmd.get_cmd()))
+            Commands::InvalidCmd(cmd) => Ok(format!("{} not found", cmd)),
+            Commands::NotBuildIn(cmd) => Ok(format!("{} is {}", cmd.executable(), cmd.executable_path())),
+            _ => Ok(format!("{} is a shell builtin", type_cmd.get_cmd())),
         }
-
     }
 }
