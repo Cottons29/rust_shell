@@ -1,6 +1,4 @@
 use std::path::PathBuf;
-use crate::commands::cd::CdCommand;
-use crate::utils::{DebugTool, WordSplitter};
 
 pub struct MkdirCmd {
     name: String,
@@ -8,38 +6,34 @@ pub struct MkdirCmd {
 }
 
 impl MkdirCmd {
-    pub fn new(name: &Vec<String>, current_dir: &PathBuf) -> Result<Self, Box<dyn std::error::Error>> {
-        let name = match name.first(){
+    pub fn new(
+        name: &Vec<String>,
+        current_dir: &PathBuf,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        let name = match name.first() {
             Some(name) => name.trim(),
-            None => return Err(From::from("No name provided"))
+            None => return Err(From::from("No name provided")),
         };
         let current_dir = current_dir.to_path_buf();
         Ok(Self {
             name: String::from(name),
-            current_dir
+            current_dir,
         })
     }
 
     pub fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let mut splitter = self.name.split_path()?;
-        let dir_name = splitter.last().unwrap().to_string();
-        splitter.pop();
-        let full_path = splitter.join("/");
-        let temp = match CdCommand::new(&self.current_dir, &vec![full_path]){
-            Ok(temp) =>{
-                match temp.run(){
-                    Ok(res) => res,
-                    Err(_) => return Err("mkdir : No such file or directory".into())
-                }
-            },
-            Err(_) => return Ok(())
-        };
+        // Create the full path by joining current directory with the new directory name
+        let full_path = self.current_dir.join(&self.name);
 
-        let path = temp.join(&dir_name);
-        DebugTool::print(&format!("mkdir : Creating directory {}", path.display()));
-        match std::fs::create_dir(path){
+        match std::fs::create_dir(&full_path) {
             Ok(_) => Ok(()),
-            Err(_) => return Err(format!("mkdir: {}: File exists", dir_name).into())       
+            Err(e) => {
+                if e.kind() == std::io::ErrorKind::AlreadyExists {
+                    Err(format!("mkdir: {}: File exists", &self.name).into())
+                } else {
+                    Err(format!("mkdir: {}: {}", &self.name, e).into())
+                }
+            }
         }
     }
 }

@@ -1,19 +1,15 @@
-use regex::Regex;
-
 type Output = Result<Vec<String>, Box<dyn std::error::Error>>;
 #[allow(unused)]
-pub trait WordSplitter{
+pub trait WordSplitter {
     fn split_words_by_space(&self) -> Output;
     fn split_quote(&self) -> Vec<String>;
     fn split_double_quote(&self) -> Vec<String>;
     fn split_path(&self) -> Output;
     fn advance_split(&self) -> Vec<String>;
-
 }
 
-
-impl WordSplitter for String{
-    fn split_words_by_space(&self) -> Output{
+impl WordSplitter for String {
+    fn split_words_by_space(&self) -> Output {
         let words: Vec<&str> = self.split_whitespace().collect();
         let result: Vec<String> = words.iter().map(|s| s.to_string()).collect();
         Ok(result)
@@ -23,22 +19,22 @@ impl WordSplitter for String{
         let input = self.trim();
         let mut words: Vec<String> = Vec::new();
         let mut chars = input.chars().peekable();
-        
+
         while let Some(ch) = chars.next() {
             if ch == '\'' {
                 // Start of a quoted section
                 let mut word = String::new();
                 let mut escaped = false;
-                
+
                 while let Some(inner_ch) = chars.next() {
                     if escaped {
                         // Handle escape sequences
                         match inner_ch {
-                            '\'' => word.push('\''),  // Escaped quote
-                            '\\' => word.push('\\'),  // Escaped backslash
-                            'n' => word.push('\n'),   // Newline
-                            't' => word.push('\t'),   // Tab
-                            'r' => word.push('\r'),   // Carriage return
+                            '\'' => word.push('\''), // Escaped quote
+                            '\\' => word.push('\\'), // Escaped backslash
+                            'n' => word.push('\n'),  // Newline
+                            't' => word.push('\t'),  // Tab
+                            'r' => word.push('\r'),  // Carriage return
                             _ => {
                                 // For any other character, include the backslash and the character
                                 word.push('\\');
@@ -58,7 +54,7 @@ impl WordSplitter for String{
                         word.push(inner_ch);
                     }
                 }
-                
+
                 // Handle unclosed quote - if we reach here with content, the quote wasn't closed
                 if escaped || chars.peek().is_none() {
                     if !word.is_empty() {
@@ -68,13 +64,61 @@ impl WordSplitter for String{
             }
             // Skip characters outside of quotes (including whitespace)
         }
-        
+
         words
     }
 
     fn split_double_quote(&self) -> Vec<String> {
-        let regex = Regex::new(r#""(.*?)"#).unwrap();
-        Vec::new()
+        let input = self.trim();
+        let mut words: Vec<String> = Vec::new();
+        let mut chars = input.chars().peekable();
+
+        while let Some(ch) = chars.next() {
+            if ch == '"' {
+                // Start of a double-quoted section
+                let mut word = String::new();
+                let mut escaped = false;
+
+                while let Some(inner_ch) = chars.next() {
+                    if escaped {
+                        // Handle escape sequences
+                        match inner_ch {
+                            '"' => word.push('"'),   // Escaped double quote
+                            '\\' => word.push('\\'), // Escaped backslash
+                            'n' => word.push('\n'),  // Newline
+                            't' => word.push('\t'),  // Tab
+                            'r' => word.push('\r'),  // Carriage return
+                            _ => {
+                                // For any other character, include the backslash and the character
+                                word.push('\\');
+                                word.push(inner_ch);
+                            }
+                        }
+                        escaped = false;
+                    } else if inner_ch == '\\' {
+                        escaped = true;
+                    } else if inner_ch == '"' {
+                        // End of double-quoted section
+                        words.push(word);
+                        word = String::new();
+                        break;
+                    } else {
+                        // Regular character inside quotes - accept any character
+                        word.push(inner_ch);
+                    }
+                }
+
+                // Handle unclosed quote - if we reach here with content, the quote wasn't closed
+                if escaped || chars.peek().is_none() {
+                    if !word.is_empty() {
+                        words.push(word);
+                    }
+                }
+            }
+            // Skip characters outside of quotes (including whitespace)
+        }
+
+        words
     }
 
     fn split_path(&self) -> Output {

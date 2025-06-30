@@ -1,6 +1,6 @@
 use crate::commands::cd::CdCommand;
 use crate::commands::echo::arg_type::EchoArg;
-use crate::utils::{DebugTool, WordSplitter};
+use crate::utils::{WordSplitter};
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
@@ -15,7 +15,6 @@ pub struct EchoCommand {
     redir_option: Option<EchoArg>,
 }
 
-#[allow(unused)]
 impl EchoCommand {
     pub fn new(args: Vec<String>, current_dir: &PathBuf) -> Self {
         let re_dir = current_dir.clone();
@@ -26,14 +25,12 @@ impl EchoCommand {
         for arg in args.iter() {
             match arg {
                 EchoArg::Flag(_) => {
-                    DebugTool::print("flag has been found");
                     option = Some(arg.clone());
                     break;
                 }
                 _ => continue,
             }
         }
-        DebugTool::print(format!("option: {:#?}", option));
         Self {
             args,
             raw_text: None,
@@ -46,14 +43,18 @@ impl EchoCommand {
     }
 
     fn combine_text(&self) -> String {
-        let mut temp_vec: Vec<String> = Vec::new();
         let temp = self
             .args
             .iter()
             .map(|arg| match arg { EchoArg::Flag(_) => None, _ => Some(arg.value())})
             .collect::<Vec<Option<String>>>();
 
-        let temp = temp.iter().filter(|arg| arg.is_some()).map(|arg| arg.clone().unwrap()).collect::<Vec<String>>();
+        let temp = temp
+            .iter()
+            .filter(|arg| arg.is_some())
+            .map(|arg| arg.clone().unwrap())
+            .collect::<Vec<String>>();
+        
         temp.join(" ")
     }
 
@@ -63,14 +64,9 @@ impl EchoCommand {
         if self.is_contain_redirection() {
             self.is_redirect = true;
             let temp = self.find_output_dir()?;
-            DebugTool::print(format!("echo: redir_path = {:#?}", temp));
             self.output_dir = temp.0;
             self.remove_raw_path(&temp.1);
         }
-        DebugTool::print(format!(
-            "echo: output_dir = {:#?}",
-            self.output_dir.display()
-        ));
 
         Ok(())
     }
@@ -112,7 +108,6 @@ impl EchoCommand {
             };
             match temp {
                 EchoArg::Flag(_) => {
-                    DebugTool::print(format!("index : {index} , value : {temp}"));
                     self.args.remove(index);
                 }
                 _ => {}
@@ -132,7 +127,6 @@ impl EchoCommand {
             match temp {
                 EchoArg::WriteInto(_) | EchoArg::AppendInto(_) => {
                     self.redir_option = Some(temp.clone());
-                    DebugTool::print("output dir has been found");
                     match self.args.get(index + 1) {
                         Some(arg) => {
                             raw_path = arg.value();
@@ -167,7 +161,6 @@ impl EchoCommand {
 
         // Extract filename and directory path
         let file_name = if parts.len() > 1 {
-            DebugTool::print(format!("parts len : {:#?}", parts.len()));
             let temp = parts.last().unwrap().to_string();
             parts.pop(); // Use pop() instead of remove(parts.len() - 1)
             temp
@@ -179,12 +172,11 @@ impl EchoCommand {
         // If there are directory components, resolve them
         let mut temp_cd = if !parts.is_empty() {
             let full_path = parts.join("/");
-            DebugTool::print(format!("echo: full_path = {:#?}", full_path));
+            
 
             match CdCommand::new(&self.current_dir, &vec![full_path]) {
                 Ok(cd) => match cd.run() {
                     Ok(res) => {
-                        DebugTool::print(format!("echo: cd res = {:#?}", res));
                         res
                     }
                     Err(err) => return Err(err),
@@ -194,11 +186,9 @@ impl EchoCommand {
         } else {
             self.current_dir.clone()
         };
-        DebugTool::print(format!("echo: before push file_name {:#?}", temp_cd));
-        DebugTool::print(format!("echo: before push file_name {:#?}", self.args));
         temp_cd.push(file_name);
 
-        DebugTool::print(format!("echo: temp cd = {:#?}", temp_cd));
+        
         Ok((temp_cd, raw_path))
     }
 
@@ -207,7 +197,6 @@ impl EchoCommand {
             Some(EchoArg::AppendInto(_)) => true,
             _ => false,
         };
-        DebugTool::print(format!("redirect into ----> {}", self.output_dir.display()));
         let mut file_option = match fs::OpenOptions::new()
             .write(true)
             .append(is_append)
@@ -221,7 +210,6 @@ impl EchoCommand {
 
         let temp = self.extract_text();
         for temp in temp.iter() {
-            DebugTool::print(format!("echo: temp is write = {:#?}", temp));
             file_option.write_all(format!("{}\n", temp).as_bytes())?;
         }
 
@@ -232,15 +220,9 @@ impl EchoCommand {
         let mut temp_vec: Vec<String> = Vec::new();
         for arg in self.args.iter() {
             match arg {
-                EchoArg::Plain(text) => {
-                    temp_vec.push(text.into());
-                }
-                EchoArg::DoubleQuoteTxt(text) => {
-                    temp_vec.push(text.into());
-                }
-                EchoArg::QuoteTxt(text) => {
-                    temp_vec.push(text.split_quote().join(" "));
-                }
+                EchoArg::Plain(text) => temp_vec.push(text.into()),
+                EchoArg::DoubleQuoteTxt(text) => temp_vec.push(text.split_double_quote().join(" ")),
+                EchoArg::QuoteTxt(text) => temp_vec.push(text.split_quote().join(" ")),
                 _ => {}
             }
         }
@@ -248,13 +230,11 @@ impl EchoCommand {
     }
 
     fn backslash_parser(&self) -> Result<(), Box<dyn std::error::Error>> {
-        DebugTool::print("backslash escapes");
         println!("{}", self.raw_text.as_ref().unwrap());
         Ok(())
     }
 
     fn inline_echo(&self) -> Result<(), Box<dyn std::error::Error>> {
-        DebugTool::print("inline echo");
         Ok(())
     }
 
@@ -295,7 +275,6 @@ impl EchoCommand {
                 Ok(())
             }
             _ => {
-                DebugTool::print("echo without flags");
                 let temp = self.process_escapes(&self.raw_text.as_ref().unwrap());
                 println!("{temp}");
                 Ok(())

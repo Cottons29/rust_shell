@@ -38,20 +38,10 @@ impl EchoArg {
         match self{
             Plain(text) => text.into(),
             Flag(text) => text.into(),
-            QuoteTxt(text) => {
-                text.split_quote().join("").to_string()
-            },
-            DoubleQuoteTxt(text) => text.into(),
+            QuoteTxt(text) =>  text.split_quote().join("").into(),
+            DoubleQuoteTxt(text) => text.split_double_quote().join("").into(),
             WriteInto(text) => text.into(),
             AppendInto(text) => text.into()
         }
     }
 }
-
-// pub struct ArgHelper;
-//
-// impl ArgHelper{
-//     pub fn new(text: &str) -> Vec<ArgType>{
-//
-//     }
-// }

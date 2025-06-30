@@ -1,4 +1,4 @@
 pub fn exit(code: i32) {
-    println!("Exiting with code {}", code);
+    println!("\nExiting with code {}\n", code);
     std::process::exit(code);
 }

@@ -2,9 +2,9 @@ use colored::Colorize;
 
 use crate::DEBUG_MODE;
 
-pub struct DebugTool;
+pub struct DebugPrint;
 
-impl DebugTool {
+impl DebugPrint {
     pub fn print<T: std::fmt::Display>(value: T) -> () {
         if !*DEBUG_MODE{
             return ();
@@ -14,3 +14,4 @@ impl DebugTool {
         println!("{}{}", debug, value);
     }
 }
+

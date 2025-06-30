@@ -1,4 +1,3 @@
-use crate::utils::DebugTool;
 use std::fs::ReadDir;
 use std::path::PathBuf;
 
@@ -33,7 +32,6 @@ impl LsFormat {
 #[allow(dead_code)]
 impl LsCommand {
     pub fn new(dir: &PathBuf, args: &Vec<String>) -> Result<Self, Box<dyn std::error::Error>> {
-        DebugTool::print(format!("dir = {:?}, args = {:?}", dir, args));
         let args = args.clone();
         let temp = Self {
             dirs: Vec::new(),
@@ -187,7 +185,6 @@ impl LsCommand {
             Ok(dirs) => dirs,
             Err(e) => return Err(e.into()),
         };
-        DebugTool::print(format!("args len = {}", self.format.len()));
         match self.dirs.len() {
             0 => self.formatted_display(dirs, None, None)?,
             1 => self.formatted_display(dirs, None, target_dir)?,

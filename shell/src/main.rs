@@ -1,7 +1,8 @@
+use crate::utils::DebugPrint;
 use std::env::args;
 use once_cell::unsync::Lazy;
 use crate::commands::CmdParser;
-use crate::utils::{DebugTool, Input, WordSplitter};
+use crate::utils::{Input, WordSplitter};
 
 mod utils;
 mod commands;
@@ -11,7 +12,7 @@ pub const DEBUG_MODE: Lazy<bool> = Lazy::new(|| args().any(|arg| arg == "--debug
 
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    DebugTool::print("is launching...");
+    dlog!("Hello, world! : {}", "Debug Mode is here.");
     let mut cmd_parser = CmdParser::default();
     loop{
         let input = String::read_line("$ ");

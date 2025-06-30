@@ -1,11 +1,12 @@
-use crate::commands::build_in::Commands;
+use crate::commands::commands::Commands;
 use crate::commands::cd::CdCommand;
 use crate::commands::echo::EchoCommand;
 use crate::commands::ls::LsCommand;
 use crate::commands::mkdir::MkdirCmd;
 use crate::commands::simple::ClearCommand;
-use crate::utils::{DebugTool, ResultPrinter, WordSplitter};
+use crate::utils::{ResultPrinter, WordSplitter};
 use std::path::PathBuf;
+use crate::{print_error, print_success};
 
 pub struct CmdParser {
     cmd: Commands,
@@ -28,7 +29,7 @@ impl CmdParser {
         text_line: String,
         current_dir: Option<PathBuf>,
     ) -> Result<CmdParser, Box<dyn std::error::Error>> {
-        use crate::commands::build_in::Commands::*;
+        use crate::commands::commands::Commands::*;
         let current_dir = current_dir.unwrap_or_else(|| PathBuf::from("/Users/cottons/Desktop"));
         if text_line.is_empty() {
             return Ok(CmdParser {
@@ -38,7 +39,7 @@ impl CmdParser {
             });
         }
         let parts = text_line.advance_split();
-        DebugTool::print(format!("parts: {:?}", parts));
+
         let cmd = parts[0].to_string();
         let args = parts[1..].to_vec();
 
@@ -57,32 +58,25 @@ impl CmdParser {
     }
 
     pub fn execute_cmd(mut self) -> Result<Self, Box<dyn std::error::Error>> {
-        use crate::commands::build_in::Commands::*;
+        use crate::commands::commands::Commands::*;
 
         match &self.cmd {
             Type(_cmd) => {
-                let arg = self.args[0].to_string();
-                let result = match self.cmd.type_cmd(&arg) {
-                    Ok(res) => res,
-                    Err(err) => {
-                        ResultPrinter::error(format!("{}", err.to_string()));
-                        return Ok(self);
-                    }
+                match self.cmd.type_cmd(&self.args[0]) {
+                    Ok(res) => print_success!("{}", res),
+                    Err(err) => print_error!("{}", err.to_string()),
                 };
-                println!("{result}");
             }
 
             Echo(_) => match EchoCommand::new(self.args.clone(), &self.current_dir).run() {
                 Ok(_) => {}
-                Err(err) => {
-                    ResultPrinter::error(format!("echo: {}", err.to_string()));
-                }
+                Err(err) => print_error!("echo: {}", err.to_string())
             },
 
             Clear(_) => match ClearCommand::run() {
                 Ok(_) => {}
                 Err(err) => {
-                    ResultPrinter::error(format!("{}", err.to_string()));
+                    print_error!("{}", err.to_string());
                 }
             },
 
@@ -90,11 +84,11 @@ impl CmdParser {
                 Ok(mut res) => match res.run() {
                     Ok(_) => {}
                     Err(err) => {
-                        ResultPrinter::error(format!("{}", err.to_string()));
+                        print_error!("{}", err.to_string());
                     }
                 },
                 Err(err) => {
-                    ResultPrinter::error(format!("{}", err.to_string()));
+                    print_success!("{}", err.to_string());
                 }
             },
             Cd(_) => {
@@ -102,12 +96,12 @@ impl CmdParser {
                     Ok(res) => match res.run() {
                         Ok(res) => res,
                         Err(err) => {
-                            ResultPrinter::error(format!("{}", err.to_string()));
+                            print_error!("{}", err.to_string());
                             return Ok(self);
                         }
                     },
                     Err(err) => {
-                        ResultPrinter::error(format!("{}", err.0.to_string()));
+                        print_error!("{}", err.0.to_string());
                         err.1
                     }
                 }
@@ -117,13 +111,13 @@ impl CmdParser {
                 Ok(res) => match res.run() {
                     Ok(_) => {}
                     Err(err) => {
-                        ResultPrinter::error(format!("{}", err.to_string()));
+                        print_success!("{}", err.to_string());
                     }
                 },
                 Err(_err) => {}
             },
 
-            _ => ResultPrinter::error(format!("cotsh: command not found: {}", self.cmd.get_cmd())),
+            _ => print_error!("cotsh: command not found: {}", self.cmd.get_cmd()),
         }
         Ok(self)
     }
