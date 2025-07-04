@@ -7,11 +7,11 @@ use crossterm::{
 };
 
 pub trait Input {
-    fn read_line(msg: &str) -> String;
+    fn read_line(msg: &String) -> String;
 }
 
 impl Input for String {
-    fn read_line(msg: &str) -> String {
+    fn read_line(msg: &String) -> String {
         let mut input = String::new();
         let mut cursor_position = 0;
         

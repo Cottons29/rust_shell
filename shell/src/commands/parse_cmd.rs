@@ -7,11 +7,14 @@ use crate::commands::simple::ClearCommand;
 use crate::utils::{ResultPrinter, WordSplitter};
 use std::path::PathBuf;
 use crate::{print_error, print_success};
+use crate::commands::executable_cmds::ExecutableCmds;
+use crate::interpreter::Interpreter;
 
 pub struct CmdParser {
     cmd: Commands,
     args: Vec<String>,
     current_dir: PathBuf,
+    text_line: String,
 }
 
 impl Default for CmdParser {
@@ -20,13 +23,14 @@ impl Default for CmdParser {
             cmd: Commands::EmptyCommand,
             args: vec![],
             current_dir: PathBuf::from("/Users/cottons/Desktop"),
+            text_line: String::new(),
         }
     }
 }
 
 impl CmdParser {
     pub fn new(
-        text_line: String,
+        text_line: &String,
         current_dir: Option<PathBuf>,
     ) -> Result<CmdParser, Box<dyn std::error::Error>> {
         use crate::commands::commands::Commands::*;
@@ -36,6 +40,7 @@ impl CmdParser {
                 cmd: EmptyCommand,
                 args: vec![],
                 current_dir,
+                text_line: String::new(),
             });
         }
         let parts = text_line.advance_split();
@@ -50,6 +55,7 @@ impl CmdParser {
             cmd,
             args,
             current_dir,
+            text_line: text_line.clone(),
         })
     }
 
@@ -57,11 +63,22 @@ impl CmdParser {
         &self.current_dir
     }
 
-    pub fn execute_cmd(mut self) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn execute_cmd(mut self, interpret_mode : bool) -> Result<Self, Box<dyn std::error::Error>> {
+
+        if self.text_line.contains(";") || self.text_line.contains("&&") || self.text_line.contains("||") {
+            match Interpreter::new_with_lines(&self.text_line).interpret() {
+                Ok(_) => {}
+                Err(err) => {
+                    print_error!("{}", err.to_string());
+                }
+            }
+            return Ok(self);
+        }
+
         use crate::commands::commands::Commands::*;
 
         match &self.cmd {
-            Type(_cmd) => {
+            Type(_cmd) | Which(_cmd) => {
                 match self.cmd.type_cmd(&self.args[0]) {
                     Ok(res) => print_success!("{}", res),
                     Err(err) => print_error!("{}", err.to_string()),
@@ -117,7 +134,34 @@ impl CmdParser {
                 Err(_err) => {}
             },
 
-            _ => print_error!("cotsh: command not found: {}", self.cmd.get_cmd()),
+            NotBuildIn(_) => {
+                match ExecutableCmds::new(&self.cmd.get_cmd(), &self.args, &self.current_dir){
+                    Ok(res) => match res.execute_cmd() {
+                        Ok(_) => {}
+                        Err(err) => {
+                            print_error!("{}", err.to_string());
+                        }
+                    },
+                    Err(err) => {
+                        print_error!("{}", err.to_string());
+                    }
+                }
+            }
+
+            Cotsh(_) => {
+                match Interpreter::new_with_lines(&self.text_line).interpret() {
+                    Ok(_) => {}
+                    Err(err) => {
+                        print_error!("{}", err.to_string());
+                    }
+                }
+            }
+
+
+
+            _ => {
+                print_error!("cotsh: command not found: {}", self.cmd.get_cmd());
+            },
         }
         Ok(self)
     }
