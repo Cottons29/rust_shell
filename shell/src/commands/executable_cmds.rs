@@ -1,7 +1,7 @@
 use crate::DEBUG_MODE;
 use crate::DebugPrint;
 use crate::dlog;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::{env, fs};
 use getset::{Getters, Setters};
@@ -12,15 +12,24 @@ pub struct ExecutableCmds {
     executable_path: String,
     #[getset(get = "pub")]
     executable: String,
+    #[getset(get = "pub")]
+    args: Vec<String>,
+    #[getset(get = "pub")]
+    current_path: PathBuf,
 }
 
 impl ExecutableCmds {
-    pub fn new(cmd: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(cmd: &str, args: &Vec<String>, current_path: &PathBuf) -> Result<Self, Box<dyn std::error::Error>> {
         match Self::find_executable(&cmd) {
             Some(path) => {
                 dlog!("found executable: {}", path);
                 match Self::is_executable(&Path::new(&path)) {
-                    true => Ok(Self { executable_path: path, executable: cmd.into() }),
+                    true => Ok(Self {
+                        executable_path: path,
+                        executable: cmd.into(),
+                        args: args.clone(),
+                        current_path: current_path.clone()
+                    }),
 
                     false => Err("command not found".into()),
                 }
@@ -47,13 +56,10 @@ impl ExecutableCmds {
         None
     }
 
-    pub fn execute_cmd(&self, text: &String) -> Result<(), Box<dyn std::error::Error>> {
-        let parts: Vec<&str> = text.split_whitespace().collect();
-        let cmd = parts[0].trim();
-        let args = &parts[1..];
-
-        let _child = Command::new(cmd)
-            .args(args)
+    pub fn execute_cmd(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let _child = Command::new(&self.executable)
+            .current_dir(&self.current_path)
+            .args(&self.args)
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .spawn()?

@@ -8,6 +8,6 @@ impl ResultPrinter {
     }
 
     pub fn success<T: std::fmt::Display>(success: T)  {
-        println!("{}", format!("{}", success).green())
+        println!("{}", format!("{}", success))
     }
 }
