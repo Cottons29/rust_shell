@@ -2,7 +2,7 @@ mod exit;
 mod echo;
 mod commands;
 mod parse_cmd;
-mod simple;
+pub(crate) mod simple;
 mod ls;
 mod cd;
 mod mkdir;

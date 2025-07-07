@@ -12,3 +12,4 @@ getset.workspace = true
 tabled.workspace =  true
 humantime.workspace = true
 chrono.workspace = true
+figlet-rs.workspace = true

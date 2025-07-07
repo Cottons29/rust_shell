@@ -8,7 +8,6 @@ pub struct Interpreter{
 
 impl Interpreter{
     pub fn new(script_file: PathBuf) -> Result<Self, Box<dyn std::error::Error>>{
-        println!("{:?}", script_file);
         match script_file.exists(){
             true => {},
             false => return Err("File not found".into())
@@ -33,13 +32,13 @@ impl Interpreter{
 
         let mut counter: u32 = 1;
         for line in &self.script_lines{
-            cmd_parser = match  CmdParser::new(line, Some(cmd_parser.get_current_dir().into())){
+            cmd_parser = match  CmdParser::new(line){
                 Ok(cmd_parser) => {
-                    match cmd_parser.execute_cmd(true){
+                    match cmd_parser.execute_cmd(){
                         Ok(res) => res,
                         Err(err) => {
                             print_success!("Error on line {}: {}", counter, err);
-                            return Err(err.into());
+                            return Err(err);
                         }   
                     }
                 }

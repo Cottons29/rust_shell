@@ -86,7 +86,8 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn new(tokens: Vec<Token>) -> Self {
+    pub fn new(input: &str) -> Self {
+        let tokens = tokenize(input);
         Self { tokens, pos: 0 }
     }
 

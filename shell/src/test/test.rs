@@ -1,4 +1,8 @@
+use std::fmt::format;
+use std::path::PathBuf;
+use colored::{Color, Colorize};
 use crossterm::style::Stylize;
+use figlet_rs::FIGfont;
 use crate::DebugPrint;
 use crate::DEBUG_MODE;
 use crate::dlog;
@@ -72,18 +76,60 @@ mod tests {
     }
 }
 
+fn greet(font: &str){
+    // Load thicc block font from file
+    let font = FIGfont::from_file("figlet-fonts/Sub-Zero.flf")
+        .unwrap_or_else(|_| FIGfont::standard().unwrap());
+    let figure = font.convert("COTSH").unwrap();
+
+    // Rainbow gradient 🌈
+    let gradient = [
+        Color::Green,
+        Color::Yellow,
+        Color::Red,
+        Color::Magenta,
+        Color::Blue,
+    ];
+
+    let ascii = figure.to_string(); // owns the data
+    let lines: Vec<&str> = ascii.lines().collect(); // borrow from owned string
+    let total = lines.len();
+
+    for (i, line) in lines.iter().enumerate() {
+        let color_index = i * gradient.len() / total;
+        println!("{}", line.color(gradient[color_index]));
+    }
+}
+
 
 
 pub fn tester() -> Result<(), Box<dyn std::error::Error>> {
 
-    println!("{}", "\nTesting env is entering\n".red().bold());
+    let font_path = PathBuf::from("/Users/cottons/Documents/rust_shell/figlet-fonts");
 
-    let input = "1 + 2 * 3 - (4 / 2)";
-    let tokens = tokenize(input);
-    let mut parser = Parser::new(tokens);
-    let ast = parser.parse_expression(0);
-    println!("AST: {:#?}", ast);
-    println!("Result: {}", eval(&ast));
+    let fonts = match font_path.read_dir(){
+        Ok(fonts) => fonts,
+        Err(e) => {
+            eprintln!("Error reading fonts: {}", e);
+            return Ok(())
+        }
+    };
+
+    for font in fonts {
+        match font {
+            Ok(font) => {
+                if font.file_name().to_str().unwrap_or_else(Default::default).contains(".flf"){
+                    println!("font: {}", font.file_name().to_str().unwrap());
+                    greet(font.file_name().to_str().unwrap());
+                }
+
+            },
+            Err(e) => {
+                eprintln!("Error reading font: {}", e);
+            }
+        }
+    }
+
 
     Ok(())
 }
