@@ -26,6 +26,6 @@ macro_rules! dlog {
 #[macro_export]
 macro_rules! read_line {
     ($($msg:tt)*) => {
-        String::read_line(&format!($($msg)*))
+        String::read_line(format!($($msg)*))
     };
 }

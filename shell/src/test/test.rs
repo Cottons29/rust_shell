@@ -1,4 +1,9 @@
-
+use crossterm::style::Stylize;
+use crate::DebugPrint;
+use crate::DEBUG_MODE;
+use crate::dlog;
+use crate::interpreter::{eval, tokenize, Parser};
+use crate::test::table_printer::tabel_tester_2;
 
 #[allow(dead_code)]
 #[cfg(test)]
@@ -65,4 +70,20 @@ mod tests {
         let splitter = temp.advance_split();
         assert_eq!(splitter, vec!["'test\\'s test'", "test2"])
     }
+}
+
+
+
+pub fn tester() -> Result<(), Box<dyn std::error::Error>> {
+
+    println!("{}", "\nTesting env is entering\n".red().bold());
+
+    let input = "1 + 2 * 3 - (4 / 2)";
+    let tokens = tokenize(input);
+    let mut parser = Parser::new(tokens);
+    let ast = parser.parse_expression(0);
+    println!("AST: {:#?}", ast);
+    println!("Result: {}", eval(&ast));
+
+    Ok(())
 }

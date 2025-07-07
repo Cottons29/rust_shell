@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use once_cell::unsync::Lazy;
 use crate::commands::CmdParser;
 use crate::interpreter::Interpreter;
+use crate::test::tester;
 use crate::utils::{Input, WordSplitter};
 
 mod utils;
@@ -17,17 +18,19 @@ pub const DEBUG_MODE: Lazy<bool> = Lazy::new(|| args().any(|arg| arg == "--debug
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("args len : {} | args : {}", args().len(), args().collect::<Vec<_>>().join(" "));
-    if args().len() == 1 {
-        shell_mode()
-    }else{
-        interpret_mode(args().nth(1).unwrap().into())
+    if args().any(|arg| arg == "--test"){
+        tester()?;
+        return Ok(());
     }
+    dlog!("Starting in debug mode");
+    shell_mode()?;
+    Ok(())
 }
 
 fn shell_mode() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd_parser = CmdParser::default();
     loop{
-        let input = read_line!("~{} -> ", cmd_parser.get_current_dir().to_string_lossy());
+        let input = read_line!("{} -> ", cmd_parser.get_current_dir().to_string_lossy());
         let words = input.split_words_by_space()?;
         if words.is_empty(){
             continue;

@@ -9,3 +9,6 @@ colored.workspace = true
 once_cell.workspace = true
 regex.workspace = true
 getset.workspace = true
+tabled.workspace =  true
+humantime.workspace = true
+chrono.workspace = true

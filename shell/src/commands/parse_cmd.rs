@@ -4,7 +4,7 @@ use crate::commands::echo::EchoCommand;
 use crate::commands::ls::LsCommand;
 use crate::commands::mkdir::MkdirCmd;
 use crate::commands::simple::ClearCommand;
-use crate::utils::{ResultPrinter, WordSplitter};
+use crate::utils::{WordSplitter};
 use std::path::PathBuf;
 use crate::{print_error, print_success};
 use crate::commands::executable_cmds::ExecutableCmds;

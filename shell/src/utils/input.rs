@@ -5,18 +5,20 @@ use crossterm::{
     cursor, execute, 
     style::Print,
 };
+use crossterm::style::Stylize;
 
 pub trait Input {
-    fn read_line(msg: &String) -> String;
+    fn read_line(msg: String) -> String;
 }
 
 impl Input for String {
-    fn read_line(msg: &String) -> String {
+    fn read_line(msg: String) -> String {
         let mut input = String::new();
         let mut cursor_position = 0;
+        let msg_len = msg.len();
         
         // Print the prompt
-        execute!(io::stdout(), Print(msg)).unwrap();
+        execute!(io::stdout(), Print(msg.bold().green())).unwrap();
         io::stdout().flush().unwrap();
         
         // Enable raw mode to read characters one by one
@@ -47,10 +49,10 @@ impl Input for String {
                             // Redraw the line
                             execute!(
                                 io::stdout(),
-                                cursor::MoveToColumn(msg.len() as u16),
+                                cursor::MoveToColumn(msg_len as u16),
                                 terminal::Clear(ClearType::FromCursorDown),
                                 Print(&input),
-                                cursor::MoveToColumn((msg.len() + cursor_position) as u16)
+                                cursor::MoveToColumn((msg_len + cursor_position) as u16)
                             ).unwrap();
                         }
                     },
@@ -85,10 +87,10 @@ impl Input for String {
                         // Redraw the line
                         execute!(
                             io::stdout(),
-                            cursor::MoveToColumn(msg.len() as u16),
+                            cursor::MoveToColumn(msg_len as u16),
                             terminal::Clear(ClearType::FromCursorDown),
                             Print(&input),
-                            cursor::MoveToColumn((msg.len() + cursor_position) as u16)
+                            cursor::MoveToColumn((msg_len + cursor_position) as u16)
                         ).unwrap();
                     },
                     
